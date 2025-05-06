@@ -1,27 +1,31 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.11' // Gunakan image resmi Python dari Docker Hub
-            args '-u root'      // Menjalankan container sebagai root (opsional)
+            image 'python:3.11'
+            args '-u root'
         }
-    }
-
-    environment {
-        DISCORD_WEBHOOK = 'https://discordapp.com/api/webhooks/1369293534062182491/yWKUP4CtamVa-9JLWSFH-zLuNqlMZXso3jX5gIhPu3ou7byngUsKux1Mk6H3rbWpAmbS'
     }
 
     stages {
         stage('Install Dependencies') {
             steps {
-                echo '🔧 Menginstal dependensi...'
-                sh 'pip install -r requirements.txt'
+                echo '🔧 Menyiapkan environment & menginstal dependensi...'
+                sh '''
+                    python -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
                 echo '🧪 Menjalankan pengujian...'
-                sh 'pytest test_app.py'
+                sh '''
+                    . venv/bin/activate
+                    pytest test_app.py
+                '''
             }
         }
 
@@ -46,7 +50,7 @@ pipeline {
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: groovy.json.JsonOutput.toJson(payload),
-                    url: "${DISCORD_WEBHOOK}"
+                    url: 'https://discordapp.com/api/webhooks/1369293534062182491/yWKUP4CtamVa-9JLWSFH-zLuNqlMZXso3jX5gIhPu3ou7byngUsKux1Mk6H3rbWpAmbS'
                 )
             }
         }
@@ -60,9 +64,4 @@ pipeline {
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: groovy.json.JsonOutput.toJson(payload),
-                    url: "${DISCORD_WEBHOOK}"
-                )
-            }
-        }
-    }
-}
+                    url: 'https://discordapp.com/api/webhooks/1369293534062182491/yWKUP4CtamVa-9JL
